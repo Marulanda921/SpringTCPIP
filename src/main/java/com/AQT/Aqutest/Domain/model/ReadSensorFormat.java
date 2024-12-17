@@ -1,37 +1,32 @@
 package com.AQT.Aqutest.Domain.model;
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.bind.annotation.ModelAttribute;
-
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "Readsensorformat")
+@Table(name = "readsensorformat")
 @Entity
 public class ReadSensorFormat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String alert;
-    private String aquaSerial;
-    private String channel;
+    private Integer alert;
+    private Integer aquaSerial;
+    private Integer channel;
     private LocalDateTime dataReadService;
-    private Date dateReadSensor;
-    private String encodeType;
-    private String master;
+    private LocalDateTime dateReadSensor;
+    private Integer encodeType;
+    private Integer master;
     private int nut;
-    private String plotIntegrity;
-    private String plotSize;
-    private String plotVersion;
-    private String responseCode;
-    private String sensorCode;
-    private String systemCommand;
-    private String typeMessage;
+    private Integer plotIntegrity;
+    private Integer plotSize;
+    private Integer plotVersion;
+    private Integer responseCode;
+    private Integer sensorCode;
+    private Integer systemCommand;
+    private Integer typeMessage;
 }
 
 

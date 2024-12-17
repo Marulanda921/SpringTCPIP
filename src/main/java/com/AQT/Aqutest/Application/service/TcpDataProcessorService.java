@@ -14,9 +14,8 @@ import java.net.BindException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.sql.Date;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 @Slf4j
@@ -40,6 +39,7 @@ public class TcpDataProcessorService {
             log.warn("Servidor TCP NO está en ejecución");
         }
     }
+
 
     @EventListener(ApplicationReadyEvent.class)
     public void displayConnectionInfo() {
@@ -89,133 +89,24 @@ public class TcpDataProcessorService {
     public MessageHandler createMessageHandler() {
         return message -> {
             try {
-                log.info("→ Conexión TCP recibida");
-
-                // Validación del mensaje y su payload
-                if (message == null) {
-                    log.error("❌ Mensaje TCP es NULL");
-                    return;
-                }
-
-                if (message.getPayload() == null) {
-                    log.error("❌ Payload del mensaje es NULL");
-                    return;
-                }
-
-                if (!(message.getPayload() instanceof byte[])) {
-                    log.error("❌ Tipo de payload incorrecto. Esperado: byte[], Recibido: {}",
-                            message.getPayload().getClass());
-                    return;
-                }
-
-                byte[] payload = (byte[]) message.getPayload();
-                log.info("✓ Payload recibido: {} bytes", payload.length);
-
-                // Log de datos en formato HEX para depuración
-                if (payload.length > 0) {
-                    log.info("✓ Datos HEX: {}", bytesToHex(payload));
-                } else {
-                    log.warn("⚠️ Payload vacío");
-                }
-
-                // Validación del tamaño del payload
-                if (payload.length < 32) {
-                    log.error("❌ Payload incompleto: {} bytes (se esperan 32)", payload.length);
-                    return;
-                }
-
-                // Procesamiento del payload
-                ReadSensorFormat sensorData = processData(payload);
-                log.info("✓ Datos procesados: {}", sensorData);
-
-                // Guardado en base de datos
-                ReadSensorFormat savedData = repository.save(sensorData);
-                log.info("✓ Datos guardados. ID: {}", savedData.getId());
-
+                byte[] rawPayload = (byte[]) message.getPayload();
+                processMessage(rawPayload);
             } catch (Exception e) {
-                log.error("❌ Error en procesamiento TCP: {}", e.getMessage());
-                log.debug("Stack trace completo: ", e);
+                System.err.println("Error procesando mensaje: " + e.getMessage());
+                e.printStackTrace();
             }
         };
     }
-
-
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString().trim();
-    }
-
-    private ReadSensorFormat processData(byte[] data) {
-        if (data == null || data.length < 32) {
-            throw new IllegalArgumentException("Datos inválidos: payload incompleto");
-        }
-
-        ReadSensorFormat format = new ReadSensorFormat();
-
-        // PlotSize (2 bytes)
-        format.setPlotSize(String.format("%02X %02X", data[0], data[1]));
-
-        // PlotVersion (1 byte)
-        format.setPlotVersion(String.format("%02X", data[2]));
-
-        // EncodeType (1 byte)
-        format.setEncodeType(String.format("%02X", data[3]));
-
-        // PlotIntegrity (3 bytes)
-        format.setPlotIntegrity(String.format("%02X %02X %02X",
-                data[4], data[5], data[6]));
-
-        // AquaSerial (4 bytes)
-        format.setAquaSerial(String.format("%02X %02X %02X %02X",
-                data[7], data[8], data[9], data[10]));
-
-        // Master (1 byte)
-        format.setMaster(String.format("%02X", data[11]));
-
-        // SensorCode (1 byte)
-        format.setSensorCode(String.format("%02X", data[12]));
-
-        // Channel (1 byte)
-        format.setChannel(String.format("%02X", data[13]));
-
-        // SystemCommand (1 byte)
-        format.setSystemCommand(String.format("%02X", data[14]));
-
-        // ResponseCode (1 byte)
-        format.setResponseCode(String.format("%02X", data[15]));
-
+    private void processMessage(byte[] data) {
         try {
-            int year = data[16] + 2000;
-            int month = data[17];
-            int day = data[18];
-            int hour = data[19];
-            int minute = data[20];
-            int second = data[21];
-            int millisecond = data[22];
+            System.out.println("\nCampos del mensaje:");
+            System.out.println(Arrays.toString(data));
 
-            LocalDateTime dateTime = LocalDateTime.of(year, month, day, hour, minute, second, millisecond * 1000000);
-            format.setDateReadSensor(Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            format.setDataReadService(LocalDateTime.now());
         } catch (Exception e) {
-            log.error("Error procesando fecha: ", e);
-            format.setDataReadService(LocalDateTime.now());
+            System.err.println("Error al procesar los campos del mensaje: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        // NUT (4 bytes)
-        format.setNut(Integer.parseInt(String.format("%02X%02X%02X%02X",
-                data[23], data[24], data[25], data[26]), 16));
-
-        // Alert (1 byte)
-        format.setAlert(String.format("%02X", data[27]));
-
-        // TypeMessage (4 bytes)
-        format.setTypeMessage(String.format("%02X %02X %02X %02X",
-                data[28], data[29], data[30], data[31]));
-
-        return format;
     }
 }
+
 

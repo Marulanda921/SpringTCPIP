@@ -85,6 +85,7 @@
 			<artifactId>spring-integration-core</artifactId>
 		</dependency>
 
+
 	</dependencies>
 
 	<build>
