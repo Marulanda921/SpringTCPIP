@@ -1,5 +1,4 @@
 package com.AQT.Aqutest.Application.config;
-
 import com.AQT.Aqutest.Application.service.TcpDataProcessorService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +32,7 @@ public class TcpServerConfig {
     //construye una cadena hexString con los bytes recibidos
     //divide la cadena hexString en valores individiuales hexadecimales
     //convierte cada valor hexadecimal a un byte y lo guarda en un arreglo de bytes
+
     public static class HexDataDeserializer extends AbstractByteArraySerializer {
         @Override
         public byte[] deserialize(InputStream inputStream) throws IOException {
@@ -65,6 +65,8 @@ public class TcpServerConfig {
                 return result;
             }
         }
+
+
 
         @Override
         public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
