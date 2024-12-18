@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "readsensorformat")
 @Entity
+@Table(name = "readsensorformat")
 public class ReadSensorFormat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
